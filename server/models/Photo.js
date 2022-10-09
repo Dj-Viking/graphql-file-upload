@@ -3,11 +3,18 @@ const dateFormat = require("../utils/dateFormat");
 
 const photoSchema = new Schema(
     {
-        photoText: {
+        filename: {
+            type: String,
+            required: "need a filename",
+            unique: true,
+        },
+        title: {
             type: String,
             required: "You need to leave a Photo!",
-            minlength: 1,
-            maxlength: 280,
+        },
+        photoSrc: {
+            type: String,
+            required: "You need to leave a Photo!",
         },
         location: {
             type: String,
@@ -20,7 +27,7 @@ const photoSchema = new Schema(
             default: Date.now,
             get: (timestamp) => dateFormat(timestamp),
         },
-        user_id: {
+        uploader: {
             type: String,
             required: true,
         },
@@ -32,10 +39,6 @@ const photoSchema = new Schema(
     }
 );
 
-// photoSchema.virtual("photoCount").get(function () {
-//     return this.photos.length;
-// });
-
-const Photo = model("photo", photoSchema);
+const Photo = model("Photo", photoSchema);
 
 module.exports = Photo;

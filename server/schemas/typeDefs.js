@@ -5,8 +5,17 @@ const typeDefs = gql`
         _id: ID
         username: String
         email: String
-        friendCount: Int
-        friends: [User]
+        photoCount: Int
+        photos: [Photo]
+    }
+
+    type Photo {
+        _id: ID!
+        title: String
+        photoSrc: String
+        createdAt: String
+        user_id: String
+        location: String
     }
 
     scalar Upload
@@ -30,10 +39,11 @@ const typeDefs = gql`
     }
 
     type Mutation {
-        fileUpload(file: Upload!): File!
+        fileUpload(file: Upload!): User
         login(email: String!, password: String!): Auth
         addUser(username: String!, email: String!, password: String!): Auth
         addFriend(friendId: ID!): User
+        deletePhoto(_id: ID!): Boolean
     }
 `;
 

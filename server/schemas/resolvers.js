@@ -1,3 +1,4 @@
+const fs = require("fs");
 const { AuthenticationError } = require("apollo-server-express");
 const { User, Photo } = require("../models");
 const GraphQLUpload = require("graphql-upload/GraphQLUpload.js");
@@ -11,7 +12,9 @@ const resolvers = {
             if (context.user) {
                 const userData = await User.findOne({
                     _id: context.user._id,
-                }).select("-__v -password");
+                })
+                    .select("-__v -password")
+                    .populate("photos");
 
                 return userData;
             }
@@ -27,38 +30,82 @@ const resolvers = {
     },
 
     Mutation: {
+        deletePhoto: async (parent, { _id }, context) => {
+            try {
+                const photo = Photo.findOne({ _id });
+                // delete photo from photos directory by filename
+                const filepath = `./photos/${photo.filename}`;
+                if (fs.existsSync(filepath)) {
+                    fs.unlinkSync(filepath);
+                }
+                await Photo.deleteOne({ _id });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        },
         fileUpload: async (parent, { file }, context) => {
-            if (context.user) {
-                console.log(
-                    "CALLED FILE UPLOAD!!!",
-                    file,
-                    "user uploading the photo",
-                    context.user
-                );
-                const { createReadStream, filename, mimetype, encoding } =
-                    await file;
+            try {
+                if (context.user) {
+                    console.log(
+                        "CALLED FILE UPLOAD!!!",
+                        file,
+                        "user uploading the photo",
+                        context.user
+                    );
+                    const { createReadStream, filename } = await file;
 
-                await Photo.create({
-                    photoText: filename,
-                    location: "some photo location",
-                    user_id: context.user._id,
-                });
+                    // Invoking the `createReadStream` will return a Readable Stream.
+                    // See https://nodejs.org/api/stream.html#stream_readable_streams
+                    const stream = createReadStream();
 
-                // Invoking the `createReadStream` will return a Readable Stream.
-                // See https://nodejs.org/api/stream.html#stream_readable_streams
-                const stream = createReadStream();
+                    // This is purely for demonstration purposes and will overwrite the
+                    // file in photos with the filename specified here in the current working directory (server directory) on EACH upload.
+                    const out = fs.createWriteStream(`./photos/${filename}`);
+                    stream.pipe(out);
+                    await finished(out);
 
-                // This is purely for demonstration purposes and will overwrite the
-                // local-file-output.txt in the current working directory on EACH upload.
-                const out = require("fs").createWriteStream(
-                    `./photos/${filename}`
-                );
-                stream.pipe(out);
-                await finished(out);
+                    //after writing the file to disk, create a base64 string representation of the picture
+                    const filebase64str = fs.readFileSync(
+                        `./photos/${filename}`,
+                        {
+                            encoding: "base64",
+                        }
+                    );
 
-                return { filename, mimetype, encoding };
-            } else {
-                new AuthenticationError("must be logged in to do that!");
+                    const fileExtension = filename
+                        .split(/\./g) //split string on the dot
+                        .find((item) => /jpg|png/g.test(item)); //find the item in the array that matches the regex pattern
+
+                    // rough example probably bad for memory storage
+                    // value to place directly into the react <img /> tag
+                    // i.e. <img src={photoText} />
+                    const photo = await Photo.create({
+                        filename,
+                        title: "some photo text",
+                        photoSrc:
+                            `data:image/${fileExtension};base64, ` +
+                            filebase64str,
+                        location: "some photo location",
+                        uploader: context.user._id,
+                    });
+
+                    const user = await User.findOneAndUpdate(
+                        { _id: context.user._id },
+                        {
+                            $addToSet: { photos: photo._id },
+                        },
+                        { new: true }
+                    ).populate("photos");
+
+                    return user;
+                } else {
+                    throw new AuthenticationError(
+                        "must be logged in to do that!"
+                    );
+                }
+            } catch (error) {
+                console.error("error in file upload", error);
             }
         },
 

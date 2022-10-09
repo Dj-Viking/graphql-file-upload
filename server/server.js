@@ -1,3 +1,4 @@
+const fs = require("fs");
 const express = require("express");
 const graphqlUploadExpress = require("graphql-upload/graphqlUploadExpress.js");
 const cors = require("cors");
@@ -43,6 +44,11 @@ const startApolloServer = async () => {
 
     db.once("open", () => {
         app.listen(PORT, () => {
+            if (!fs.existsSync("./photos")) {
+                console.log("no photos directory created, creating one now");
+                fs.mkdirSync("photos");
+            }
+
             console.log(`API server running on port ${PORT}!`);
             console.log(
                 `Use GraphQL at http://localhost:${PORT}${server.graphqlPath}`

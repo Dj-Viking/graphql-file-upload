@@ -1,39 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { gql, useMutation } from "@apollo/client";
-import { UPLOAD_FILE } from "./mutation.js";
+import { useMutation, useQuery } from "@apollo/client";
+import { UPLOAD_FILE, SIGNUP, LOGIN, DELETE_PHOTO } from "./mutation.js";
 
 import "./App.css";
+import { ME } from "./query.js";
 
 function App() {
     const fileReader = new FileReader();
     const [files, setFiles] = useState([]);
+    const [photos, setPhotos] = useState([]);
     const [src, setSrc] = useState("");
+    const { refetch } = useQuery(ME);
     const [loggedIn, setLoggedIn] = useState(false);
+    const [deletePhotoMutation] = useMutation(DELETE_PHOTO);
     const [fileUploadMutation] = useMutation(UPLOAD_FILE);
-    const [signupMutation] = useMutation(gql`
-        mutation {
-            addUser(
-                username: "viking"
-                email: "viking@viking.com"
-                password: "viking"
-            ) {
-                token
-                user {
-                    _id
-                }
-            }
-        }
-    `);
-    const [loginMutation] = useMutation(gql`
-        mutation {
-            login(email: "viking@viking.com", password: "viking") {
-                token
-                user {
-                    _id
-                }
-            }
-        }
-    `);
+    const [signupMutation] = useMutation(SIGNUP);
+    const [loginMutation] = useMutation(LOGIN);
     function fileView(event) {
         console.log("files", event.target.files);
         setFiles(event.target.files);
@@ -50,8 +32,7 @@ function App() {
         e.preventDefault();
         (async () => {
             try {
-                const res = await signupMutation();
-                console.log("sign up res", res);
+                await signupMutation();
                 setLoggedIn(true);
             } catch (error) {
                 console.error("error during signup", error);
@@ -64,7 +45,6 @@ function App() {
         (async () => {
             try {
                 const res = await loginMutation();
-                console.log("res in login", res);
                 localStorage.setItem("id_token", res.data.login.token);
                 setLoggedIn(true);
             } catch (error) {
@@ -89,13 +69,29 @@ function App() {
         })();
     }
 
+    function deletePhoto(event) {
+        event.preventDefault();
+        (async () => {
+            await deletePhotoMutation({
+                variables: {
+                    _id: event.target.id,
+                },
+            });
+        })();
+    }
+
     useEffect(() => {
-        if (localStorage.getItem("id_token")) {
-            setLoggedIn(true);
-        } else {
-            setLoggedIn(false);
-        }
-    }, [files.length]);
+        (async () => {
+            //refetch after files.length changes and set the photos the user currently has
+            const res = await refetch();
+            setPhotos(res.data.me.photos);
+            if (localStorage.getItem("id_token")) {
+                setLoggedIn(true);
+            } else {
+                setLoggedIn(false);
+            }
+        })();
+    }, [files.length, refetch]);
 
     return (
         <div className="App">
@@ -126,6 +122,7 @@ function App() {
             </button>
             {files.length > 0 && src.length > 0 && (
                 <>
+                    <p>=======</p>
                     <img
                         width="400px"
                         height={"auto"}
@@ -133,6 +130,29 @@ function App() {
                         alt="some-file"
                     />
                     <button onClick={fileUpload}>upload file</button>
+                    <p>=======</p>
+                </>
+            )}
+            {photos.length > 0 && (
+                <>
+                    <h2>my photos</h2>
+                    {photos.map((photo) => {
+                        return (
+                            <div key={Math.random() * 1000 + "kdjfdkjf"}>
+                                <p>Title: {photo.title}</p>
+                                <p>location: {photo.location}</p>
+                                <img
+                                    width="400px"
+                                    height="auto"
+                                    src={photo.photoSrc}
+                                    alt="something"
+                                />
+                                <button id={photo._id} onClick={deletePhoto}>
+                                    delete photo
+                                </button>
+                            </div>
+                        );
+                    })}
                 </>
             )}
         </div>
