@@ -1,5 +1,5 @@
 const { AuthenticationError } = require("apollo-server-express");
-const { User } = require("../models");
+const { User, Photo } = require("../models");
 const GraphQLUpload = require("graphql-upload/GraphQLUpload.js");
 const { finished } = require("stream/promises");
 const { signToken } = require("../utils/auth");
@@ -28,23 +28,38 @@ const resolvers = {
 
     Mutation: {
         fileUpload: async (parent, { file }, context) => {
-            console.log("CALLED FILE UPLOAD!!!", file);
-            const { createReadStream, filename, mimetype, encoding } =
-                await file;
+            if (context.user) {
+                console.log(
+                    "CALLED FILE UPLOAD!!!",
+                    file,
+                    "user uploading the photo",
+                    context.user
+                );
+                const { createReadStream, filename, mimetype, encoding } =
+                    await file;
 
-            // Invoking the `createReadStream` will return a Readable Stream.
-            // See https://nodejs.org/api/stream.html#stream_readable_streams
-            const stream = createReadStream();
+                await Photo.create({
+                    photoText: filename,
+                    location: "some photo location",
+                    user_id: context.user._id,
+                });
 
-            // This is purely for demonstration purposes and will overwrite the
-            // local-file-output.txt in the current working directory on EACH upload.
-            const out = require("fs").createWriteStream(
-                `./photos/${filename}.png`
-            );
-            stream.pipe(out);
-            await finished(out);
+                // Invoking the `createReadStream` will return a Readable Stream.
+                // See https://nodejs.org/api/stream.html#stream_readable_streams
+                const stream = createReadStream();
 
-            return { filename, mimetype, encoding };
+                // This is purely for demonstration purposes and will overwrite the
+                // local-file-output.txt in the current working directory on EACH upload.
+                const out = require("fs").createWriteStream(
+                    `./photos/${filename}`
+                );
+                stream.pipe(out);
+                await finished(out);
+
+                return { filename, mimetype, encoding };
+            } else {
+                new AuthenticationError("must be logged in to do that!");
+            }
         },
 
         addUser: async (parent, args) => {

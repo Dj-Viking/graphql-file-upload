@@ -4,23 +4,8 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { createUploadLink } from "apollo-upload-client";
-import {
-    ApolloClient,
-    InMemoryCache,
-    ApolloProvider,
-    // createHttpLink,
-} from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-
-const httpLink = createUploadLink({
-    fetchOptions: {
-        mode: "no-cors",
-    },
-    uri:
-        process.env.NODE_ENV === "development"
-            ? "http://localhost:3001/graphql"
-            : "/graphql",
-});
 
 const authLink = setContext((_, { headers }) => {
     const token = localStorage.getItem("id_token");

@@ -13,11 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "apollo-server-core": "^3.10.3",
     "apollo-server-express": "^3.6.1",
     "aws-sdk": "^2.1231.0",
     "bcrypt": "^4.0.1",
-    "cors": "^2.8.5",
     "express": "^4.17.2",
     "faker": "^4.1.0",
     "graphql": "^16.2.0",
