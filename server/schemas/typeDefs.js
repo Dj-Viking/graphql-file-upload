@@ -12,6 +12,7 @@ const typeDefs = gql`
     type Photo {
         _id: ID!
         title: String
+        filename: String
         photoSrc: String
         createdAt: String
         user_id: String

@@ -5,7 +5,9 @@ export const UPLOAD_FILE = gql`
             _id
             photos {
                 _id
-                photoText
+                title
+                filename
+                photoSrc
                 location
                 user_id
                 createdAt

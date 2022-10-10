@@ -72,11 +72,18 @@ function App() {
     function deletePhoto(event) {
         event.preventDefault();
         (async () => {
-            await deletePhotoMutation({
-                variables: {
-                    _id: event.target.id,
-                },
-            });
+            try {
+                await deletePhotoMutation({
+                    variables: {
+                        _id: event.target.id,
+                    },
+                });
+                setPhotos(
+                    photos.filter((photo) => photo._id !== event.target.id)
+                );
+            } catch (error) {
+                console.error("error when deleting photo", error);
+            }
         })();
     }
 

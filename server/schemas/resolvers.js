@@ -32,7 +32,7 @@ const resolvers = {
     Mutation: {
         deletePhoto: async (parent, { _id }, context) => {
             try {
-                const photo = Photo.findOne({ _id });
+                const photo = await Photo.findOne({ _id });
                 // delete photo from photos directory by filename
                 const filepath = `./photos/${photo.filename}`;
                 if (fs.existsSync(filepath)) {
@@ -47,12 +47,6 @@ const resolvers = {
         fileUpload: async (parent, { file }, context) => {
             try {
                 if (context.user) {
-                    console.log(
-                        "CALLED FILE UPLOAD!!!",
-                        file,
-                        "user uploading the photo",
-                        context.user
-                    );
                     const { createReadStream, filename } = await file;
 
                     // Invoking the `createReadStream` will return a Readable Stream.

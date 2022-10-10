@@ -5,7 +5,9 @@ export const ME = gql`
             _id
             photos {
                 _id
-                photoText
+                title
+                photoSrc
+                filename
                 location
                 createdAt
             }
