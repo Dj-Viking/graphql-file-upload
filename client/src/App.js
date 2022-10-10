@@ -45,12 +45,19 @@ function App() {
         (async () => {
             try {
                 const res = await loginMutation();
+                setPhotos(res.data.login.user.photos);
                 localStorage.setItem("id_token", res.data.login.token);
                 setLoggedIn(true);
             } catch (error) {
                 console.error("error during login", error);
             }
         })();
+    }
+
+    function logout() {
+        setLoggedIn(false);
+        localStorage.removeItem("id_token");
+        setPhotos([]);
     }
 
     function fileUpload(submitEvent) {
@@ -104,14 +111,7 @@ function App() {
         <div className="App">
             <span>{loggedIn ? "LOGGED IN" : "NOT LOGGED IN"}</span>
             <button onClick={login}>log in</button>
-            <button
-                onClick={() => {
-                    localStorage.removeItem("id_token");
-                    setLoggedIn(false);
-                }}
-            >
-                log out
-            </button>
+            <button onClick={logout}>log out</button>
             <button onClick={signup}>signup</button>
             <input
                 id="upload"

@@ -110,7 +110,7 @@ const resolvers = {
             return { token, user };
         },
         login: async (parent, { email, password }) => {
-            const user = await User.findOne({ email });
+            const user = await User.findOne({ email }).populate("photos");
 
             if (!user) {
                 throw new AuthenticationError("Incorrect credentials");
