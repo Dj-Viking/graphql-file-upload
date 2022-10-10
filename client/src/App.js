@@ -125,18 +125,19 @@ function App() {
                     document.getElementById("upload").click();
                 }}
             >
-                get file
+                get photo
             </button>
             {files.length > 0 && src.length > 0 && (
                 <>
                     <p>=======</p>
+                    <p>Photo to upload</p>
                     <img
                         width="400px"
                         height={"auto"}
                         src={src}
                         alt="some-file"
                     />
-                    <button onClick={fileUpload}>upload file</button>
+                    <button onClick={fileUpload}>upload photo</button>
                     <p>=======</p>
                 </>
             )}
