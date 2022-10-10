@@ -73,7 +73,7 @@ const resolvers = {
 
                     // rough example probably bad for memory storage
                     // value to place directly into the react <img /> tag
-                    // i.e. <img src={photoText} />
+                    // i.e. <img src={photo.photoSrc} />
                     const photo = await Photo.create({
                         filename,
                         title: "some photo text",
